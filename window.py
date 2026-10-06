@@ -126,10 +126,16 @@ class App(ctk.CTk):
             c.grid_columnconfigure(i, weight=1, uniform="auto")
 
         a = self.campos_auto
-        a["chave"] = self._campo(c, "Chave de Acesso", 0, 0, somente_leitura=True)
-        a["emitente"] = self._campo(c, "Emitente", 0, 1, somente_leitura=True)
-        a["cnpj"] = self._campo(c, "CNPJ", 0, 2, somente_leitura=True)
-        a["ie"] = self._campo(c, "IE", 0, 3, somente_leitura=True)
+        a["serie"] = self._campo(c, "Serie", 0, 0, somente_leitura=True)
+        a["numero da NF"] = self._campo(c, "NF", 0, 1, somente_leitura=True)
+        a["destinatario"] = self._campo(c, "Destinatário", 0, 2, somente_leitura=True)
+        a["CPF_CNPJ"] = self._campo(c, "CPF/CNPJ", 0, 3, somente_leitura=True)
+        a["data_da_emissao"] = self._campo(c, "Data da emissão", 0, 4, somente_leitura=True)
+        a["endereco"] = self._campo(c, "Endereço", 1, 0, somente_leitura=True)
+        a["bairro_distrito"] = self._campo(c, "Bairro/Distrito", 1, 1, somente_leitura=True)
+        a["municipio"] = self._campo(c, "Municipio", 1, 2, somente_leitura=True)
+        a["UF"] = self._campo(c, "UF", 1, 3, somente_leitura=True)
+        a["CEP"] = self._campo(c, "CEP", 1, 4, somente_leitura=True)
 
     def _card_manual(self, pai, linha):
         c = self._card(pai, linha, 3, "Informações complementares", "preenchimento manual")
@@ -137,10 +143,9 @@ class App(ctk.CTk):
             c.grid_columnconfigure(i, weight=1, uniform="manual")
 
         m = self.campos_manual
-        m["data_emissao"] = self._campo(c, "Data de Emissão", 0, 0, "dd/mm/aaaa")
-        m["numero_os"] = self._campo(c, "Número da OS", 0, 1, "Ex.: 8891")
-        m["codigo_produto"] = self._campo(c, "Código do Produto", 0, 2, "Ex.: PROD-005")
-        m["quantidade"] = self._campo(c, "Quantidade", 0, 3, "0")
+        m["numero_os"] = self._campo(c, "Número da OS", 0, 0, "Ex.: 8891")
+        m["codigo_produto"] = self._campo(c, "Código do Produto", 0, 1, "Ex.: PROD-005")
+        m["quantidade"] = self._campo(c, "Quantidade", 0, 2, "0")
         m["descricao_produto"] = self._campo(c, "Descrição do Produto", 1, 0, "Ex.: Teclado Mecanico Kuromori 60% Switch R")
 
         m["vlr_unitario"] = self._campo(c, "Vlr. Unitário", 0, 4, "0.00")
