@@ -7,7 +7,7 @@ python window.py
 
 import customtkinter as ctk
 from tkinter import filedialog
-
+import re
 import app
 
 ctk.set_appearance_mode("light")
@@ -40,6 +40,11 @@ class App(ctk.CTk):
         self.campos_auto = {}    # campos bloqueados (dados da NF)
         self.campos_manual = {}  # campos de preenchimento manual
 
+        # PRIMEIRO: Registra todos os validadores no sistema antes de criar qualquer tela
+        self.valida_inteiro = (self.register(self._somente_inteiros), '%P')
+        self.valida_decimal = (self.register(self._somente_decimais), '%P')
+        self.valida_codigo = (self.register(self._somente_codigos), '%P')
+
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
@@ -47,12 +52,40 @@ class App(ctk.CTk):
         corpo.grid(row=0, column=0, sticky="nsew", padx=24, pady=(20, 0))
         corpo.grid_columnconfigure(0, weight=1)
 
+        # SEGUNDO: Desenha os componentes na interface gráfica
         self._cabecalho(corpo, 0)
         self._card_selecao(corpo, 1)
         self._card_dados_auto(corpo, 2)
         self._card_manual(corpo, 3)
         self._card_exportacao(corpo, 4)
         self._barra_status()
+
+    # ------------------------------------------------------------------
+    # Funções de Validação de Entrada de Dados
+    # ------------------------------------------------------------------
+    def _somente_inteiros(self, texto_futuro):
+        if texto_futuro == "" or texto_futuro.isdigit():
+            return True
+        return False
+
+    def _somente_decimais(self, texto_futuro):
+        if texto_futuro == "":
+            return True
+        texto_validar = texto_futuro.replace(",", ".")
+        try:
+            float(texto_validar)
+            return True
+        except ValueError:
+            return False
+
+    def _somente_codigos(self, texto_futuro):
+        if texto_futuro == "":
+            return True
+        # Permite letras, números, hífen (-), barra (/), barra invertida (\) e espaços
+        padrao = r'^[a-zA-Z0-9\/\-\\ ]*$'
+        if re.match(padrao, texto_futuro):
+            return True
+        return False
 
     # ------------------------------------------------------------------
     # Componentes reutilizáveis
@@ -86,15 +119,25 @@ class App(ctk.CTk):
         conteudo.grid(row=1, column=0, sticky="ew", padx=20, pady=(6, 18))
         return conteudo
 
-    def _campo(self, pai, rotulo, linha, coluna, placeholder="", somente_leitura=False):
+    def _campo(self, pai, rotulo, linha, column, placeholder="", somente_leitura=False, tipo_num=None):
         frame = ctk.CTkFrame(pai, fg_color="transparent")
-        frame.grid(row=linha, column=coluna, sticky="ew", padx=6, pady=6)
+        frame.grid(row=linha, column=column, sticky="ew", padx=6, pady=6)
         ctk.CTkLabel(frame, text=rotulo, font=(FONTE, 12),
                      text_color=COR_TEXTO_SUAVE, anchor="w").pack(fill="x")
+        
+        kwargs_validacao = {}
+        if tipo_num == "inteiro":
+            kwargs_validacao = {"validate": "key", "validatecommand": self.valida_inteiro}
+        elif tipo_num == "decimal":
+            kwargs_validacao = {"validate": "key", "validatecommand": self.valida_decimal}
+        elif tipo_num == "codigo":
+            kwargs_validacao = {"validate": "key", "validatecommand": self.valida_codigo}
+
         entry = ctk.CTkEntry(
             frame, height=38, corner_radius=8, border_width=1, border_color=COR_BORDA,
             fg_color=COR_CAMPO_LEITURA if somente_leitura else "white",
             text_color=COR_TEXTO, placeholder_text=placeholder, font=(FONTE, 13),
+            **kwargs_validacao
         )
         entry.pack(fill="x", pady=(3, 0))
         if somente_leitura:
@@ -127,7 +170,6 @@ class App(ctk.CTk):
         for i in range(5):
             c.grid_columnconfigure(i, weight=1, uniform="auto")
 
-        # chaves = nomes devolvidos por extrator_nf.extrair_dados_nf
         a = self.campos_auto
         a["serie"] = self._campo(c, "Série", 0, 0, somente_leitura=True)
         a["numero_nf"] = self._campo(c, "NF", 0, 1, somente_leitura=True)
@@ -146,19 +188,18 @@ class App(ctk.CTk):
             c.grid_columnconfigure(i, weight=1, uniform="manual")
 
         m = self.campos_manual
-        m["numero_os"] = self._campo(c, "Número da OS", 0, 0, "Ex: 85505823/1")
-        m["codigo_produto"] = self._campo(c, "Código do Produto", 0, 1, "Ex: 05490000-0")
-        m["quantidade"] = self._campo(c, "Quantidade", 0, 2, "1")
-        m["vlr_unitario"] = self._campo(c, "Vlr. Unitário", 0, 3, "0.00")
+        m["numero_os"] = self._campo(c, "Número da OS", 0, 0, "Ex: 85505823/1", tipo_num="codigo")
+        m["codigo_produto"] = self._campo(c, "Código do Produto", 0, 1, "Ex: 05490000-0", tipo_num="codigo")
+        m["quantidade"] = self._campo(c, "Quantidade", 0, 2, "1", tipo_num="inteiro")
+        m["vlr_unitario"] = self._campo(c, "Vlr. Unitário", 0, 3, "0.00", tipo_num="decimal")
 
         m["descricao_produto"] = self._campo(c, "Descrição do Produto", 1, 0, "Ex: FECHADURA DIGITAL YDM60")
-        m["bc_icms"] = self._campo(c, "BC ICMS", 1, 1, "0.00")
-        m["vlr_icms"] = self._campo(c, "Vlr. ICMS", 1, 2, "0.00")
-        m["valor_total_devolvido"] = self._campo(c, "Valor Total Devolvido", 1, 3, "0.00")
+        m["bc_icms"] = self._campo(c, "BC ICMS", 1, 1, "0.00", tipo_num="decimal")
+        m["vlr_icms"] = self._campo(c, "Vlr. ICMS", 1, 2, "0.00", tipo_num="decimal")
+        m["valor_total_devolvido"] = self._campo(c, "Valor Total Devolvido", 1, 3, "0.00", tipo_num="decimal")
 
-        m["vlr_total_item"] = self._campo(c, "Vlr. Total do Item", 2, 0, "0.00")
-        m["vlr_ipi"] = self._campo(c, "Vlr. IPI", 2, 1, "0.00")
-        
+        m["vlr_total_item"] = self._campo(c, "Vlr. Total do Item", 2, 0, "0.00", tipo_num="decimal")
+        m["vlr_ipi"] = self._campo(c, "Vlr. IPI", 2, 1, "0.00", tipo_num="decimal")
 
     def _card_exportacao(self, pai, linha):
         c = self._card(pai, linha, 4, "Exportação")
@@ -173,59 +214,54 @@ class App(ctk.CTk):
         self.lbl_destino = ctk.CTkLabel(destino, text=r"C:\Processados\Devolucoes",
                                         font=(FONTE, 13), text_color=COR_TEXTO, anchor="w")
         self.lbl_destino.grid(row=0, column=1, sticky="w")
+        
         self.btn_alterar_destino = ctk.CTkButton(
-            destino, text="Alterar", width=80, height=30, corner_radius=8,
-            fg_color="transparent", border_width=1, border_color=COR_BORDA,
-            text_color=COR_TEXTO, hover_color=COR_CAMPO_LEITURA,
-            font=(FONTE, 12), command=self.alterar_destino,
+        destino, text="Alterar", width=80, height=30, corner_radius=8,
+        fg_color="transparent", border_width=1, border_color=COR_BORDA,
+        text_color=COR_TEXTO, hover_color=COR_CAMPO_LEITURA,
+        font=(FONTE, 12), command=self.alterar_destino
         )
         self.btn_alterar_destino.grid(row=0, column=2, padx=(12, 0))
-
         botoes = ctk.CTkFrame(c, fg_color="transparent")
         botoes.grid(row=1, column=0)
-
         self.btn_limpar = ctk.CTkButton(
-            botoes, text="Limpar campos", width=200, height=46, corner_radius=10,
-            fg_color="transparent", border_width=2, border_color=COR_PERIGO,
-            text_color=COR_PERIGO, hover_color=COR_PERIGO_HOVER_BG,
-            font=(FONTE, 14, "bold"), command=lambda: app.LimpaCampos(self),
+        botoes, text="Limpar campos", width=200, height=46, corner_radius=10,
+        fg_color="transparent", border_width=2, border_color=COR_PERIGO,
+        text_color=COR_PERIGO, hover_color=COR_PERIGO_HOVER_BG,
+        font=(FONTE, 14, "bold"), command=lambda: app.LimpaCampos(self),
         )
         self.btn_limpar.pack(side="left", padx=8)
-
         self.btn_gerar = ctk.CTkButton(
-            botoes, text="Gerar Arquivo", width=240, height=46, corner_radius=10,
-            fg_color=COR_SUCESSO, hover_color=COR_SUCESSO_HOVER,
-            font=(FONTE, 14, "bold"), command=self.gerar_arquivo,
+        botoes, text="Gerar Arquivo", width=240, height=46, corner_radius=10,
+        fg_color=COR_SUCESSO, hover_color=COR_SUCESSO_HOVER,
+        font=(FONTE, 14, "bold"), command=self.gerar_arquivo,
         )
         self.btn_gerar.pack(side="left", padx=8)
-
     def _barra_status(self):
         barra = ctk.CTkFrame(self, fg_color=COR_CARD, corner_radius=0, height=34,
-                             border_width=1, border_color=COR_BORDA)
+        border_width=1, border_color=COR_BORDA)
         barra.grid(row=1, column=0, sticky="ew", pady=(10, 0))
         self.lbl_status = ctk.CTkLabel(barra, text="Pronto.", font=(FONTE, 12),
-                                       text_color=COR_TEXTO_SUAVE, anchor="w")
+        text_color=COR_TEXTO_SUAVE, anchor="w")
         self.lbl_status.pack(fill="x", padx=20, pady=6)
-
-    # ------------------------------------------------------------------
-    # Callbacks ainda não implementados (mover para app.py quando fizer)
-    # ------------------------------------------------------------------
+        # ------------------------------------------------------------------
+        # Callbacks da Interface
+        # ------------------------------------------------------------------
     def alterar_destino(self):
-        # Abre a janela nativa do Windows para selecionar diretórios
         pasta_selecionada = filedialog.askdirectory(
             title="Selecione a Pasta de Destino",
-            initialdir=self.lbl_destino.cget("text") # Abre na pasta que já está escrita por padrão
+            initialdir=self.lbl_destino.cget("text")
         )
-        
-        # Se o usuário escolheu uma pasta (e não cancelou a janela)
         if pasta_selecionada:
-            # Atualiza o texto do rótulo na interface com o novo caminho corrigindo as barras para o padrão Windows
+            
             caminho_windows = pasta_selecionada.replace("/", "\\")
             self.lbl_destino.configure(text=caminho_windows)
 
+    
     def gerar_arquivo(self):
         pass
 
 
+# Totalmente fora da classe, encostado na parede esquerda (sem nenhum espaço)
 if __name__ == "__main__":
     App().mainloop()
