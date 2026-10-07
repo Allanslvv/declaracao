@@ -1,12 +1,13 @@
 """
 Processador de NF-e - Layout (somente tela)
 
-pip install customtkinter
+pip install customtkinter pypdf
 python window.py
 """
 
 import customtkinter as ctk
-import app as main
+
+import app
 
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
@@ -109,33 +110,34 @@ class App(ctk.CTk):
         self.entry_arquivo = ctk.CTkEntry(
             c, height=40, corner_radius=8, border_width=1, border_color=COR_BORDA,
             fg_color="white", text_color=COR_TEXTO, font=(FONTE, 13),
-            placeholder_text=r"C:\Notas\NF-e_123456.xml",
+            placeholder_text=r"C:\Notas\NF-e_123456.pdf",
         )
         self.entry_arquivo.grid(row=0, column=0, sticky="ew", padx=(6, 10))
 
         self.btn_procurar = ctk.CTkButton(
             c, text="Procurar...", height=40, width=150, corner_radius=8,
             fg_color=COR_PRIMARIA, hover_color=COR_PRIMARIA_HOVER,
-            font=(FONTE, 13, "bold"),  command=lambda: main.SearchNF(self),
+            font=(FONTE, 13, "bold"), command=lambda: app.SearchNF(self),
         )
         self.btn_procurar.grid(row=0, column=1, padx=(0, 6))
 
     def _card_dados_auto(self, pai, linha):
         c = self._card(pai, linha, 2, "Dados carregados da NF", "preenchidos automaticamente")
-        for i in range(4):
+        for i in range(5):
             c.grid_columnconfigure(i, weight=1, uniform="auto")
 
+        # chaves = nomes devolvidos por extrator_nf.extrair_dados_nf
         a = self.campos_auto
-        a["serie"] = self._campo(c, "Serie", 0, 0, somente_leitura=True)
-        a["numero da NF"] = self._campo(c, "NF", 0, 1, somente_leitura=True)
+        a["serie"] = self._campo(c, "Série", 0, 0, somente_leitura=True)
+        a["numero_nf"] = self._campo(c, "NF", 0, 1, somente_leitura=True)
         a["destinatario"] = self._campo(c, "Destinatário", 0, 2, somente_leitura=True)
-        a["CPF_CNPJ"] = self._campo(c, "CPF/CNPJ", 0, 3, somente_leitura=True)
-        a["data_da_emissao"] = self._campo(c, "Data da emissão", 0, 4, somente_leitura=True)
+        a["cpf_cnpj_destinatario"] = self._campo(c, "CPF/CNPJ", 0, 3, somente_leitura=True)
+        a["data_emissao"] = self._campo(c, "Data da emissão", 0, 4, somente_leitura=True)
         a["endereco"] = self._campo(c, "Endereço", 1, 0, somente_leitura=True)
         a["bairro_distrito"] = self._campo(c, "Bairro/Distrito", 1, 1, somente_leitura=True)
-        a["municipio"] = self._campo(c, "Municipio", 1, 2, somente_leitura=True)
-        a["UF"] = self._campo(c, "UF", 1, 3, somente_leitura=True)
-        a["CEP"] = self._campo(c, "CEP", 1, 4, somente_leitura=True)
+        a["municipio"] = self._campo(c, "Município", 1, 2, somente_leitura=True)
+        a["uf"] = self._campo(c, "UF", 1, 3, somente_leitura=True)
+        a["cep"] = self._campo(c, "CEP", 1, 4, somente_leitura=True)
 
     def _card_manual(self, pai, linha):
         c = self._card(pai, linha, 3, "Informações complementares", "preenchimento manual")
@@ -146,9 +148,9 @@ class App(ctk.CTk):
         m["numero_os"] = self._campo(c, "Número da OS", 0, 0, "Ex.: 8891")
         m["codigo_produto"] = self._campo(c, "Código do Produto", 0, 1, "Ex.: PROD-005")
         m["quantidade"] = self._campo(c, "Quantidade", 0, 2, "0")
-        m["descricao_produto"] = self._campo(c, "Descrição do Produto", 1, 0, "Ex.: Teclado Mecanico Kuromori 60% Switch R")
+        m["vlr_unitario"] = self._campo(c, "Vlr. Unitário", 0, 3, "0.00")
 
-        m["vlr_unitario"] = self._campo(c, "Vlr. Unitário", 0, 4, "0.00")
+        m["descricao_produto"] = self._campo(c, "Descrição do Produto", 1, 0, "Ex.: Teclado Mecanico Kuromori 60% Switch R")
         m["bc_icms"] = self._campo(c, "BC ICMS", 1, 1, "0.00")
         m["vlr_icms"] = self._campo(c, "Vlr. ICMS", 1, 2, "0.00")
         m["valor_total_devolvido"] = self._campo(c, "Valor Total Devolvido", 1, 3, "0.00")
@@ -185,7 +187,7 @@ class App(ctk.CTk):
             botoes, text="Limpar campos", width=200, height=46, corner_radius=10,
             fg_color="transparent", border_width=2, border_color=COR_PERIGO,
             text_color=COR_PERIGO, hover_color=COR_PERIGO_HOVER_BG,
-            font=(FONTE, 14, "bold"), command=lambda: main.LimpaCampos(self),
+            font=(FONTE, 14, "bold"), command=lambda: app.LimpaCampos(self),
         )
         self.btn_limpar.pack(side="left", padx=8)
 
@@ -205,15 +207,9 @@ class App(ctk.CTk):
         self.lbl_status.pack(fill="x", padx=20, pady=6)
 
     # ------------------------------------------------------------------
-    # Callbacks dos botões (implementar)
+    # Callbacks ainda não implementados (mover para app.py quando fizer)
     # ------------------------------------------------------------------
-    def procurar_arquivo(self):
-        pass
-
     def alterar_destino(self):
-        pass
-
-    def limpar_campos(self):
         pass
 
     def gerar_arquivo(self):
