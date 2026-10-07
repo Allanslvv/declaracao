@@ -6,6 +6,7 @@ python window.py
 """
 
 import customtkinter as ctk
+from tkinter import filedialog
 
 import app
 
@@ -145,19 +146,19 @@ class App(ctk.CTk):
             c.grid_columnconfigure(i, weight=1, uniform="manual")
 
         m = self.campos_manual
-        m["numero_os"] = self._campo(c, "Número da OS", 0, 0, "Ex.: 8891")
-        m["codigo_produto"] = self._campo(c, "Código do Produto", 0, 1, "Ex.: PROD-005")
-        m["quantidade"] = self._campo(c, "Quantidade", 0, 2, "0")
+        m["numero_os"] = self._campo(c, "Número da OS", 0, 0, "Ex: 85505823/1")
+        m["codigo_produto"] = self._campo(c, "Código do Produto", 0, 1, "Ex: 05490000-0")
+        m["quantidade"] = self._campo(c, "Quantidade", 0, 2, "1")
         m["vlr_unitario"] = self._campo(c, "Vlr. Unitário", 0, 3, "0.00")
 
-        m["descricao_produto"] = self._campo(c, "Descrição do Produto", 1, 0, "Ex.: Teclado Mecanico Kuromori 60% Switch R")
+        m["descricao_produto"] = self._campo(c, "Descrição do Produto", 1, 0, "Ex: FECHADURA DIGITAL YDM60")
         m["bc_icms"] = self._campo(c, "BC ICMS", 1, 1, "0.00")
         m["vlr_icms"] = self._campo(c, "Vlr. ICMS", 1, 2, "0.00")
         m["valor_total_devolvido"] = self._campo(c, "Valor Total Devolvido", 1, 3, "0.00")
 
         m["vlr_total_item"] = self._campo(c, "Vlr. Total do Item", 2, 0, "0.00")
         m["vlr_ipi"] = self._campo(c, "Vlr. IPI", 2, 1, "0.00")
-        m["ipi"] = self._campo(c, "IPI", 2, 2, "0.00")
+        
 
     def _card_exportacao(self, pai, linha):
         c = self._card(pai, linha, 4, "Exportação")
@@ -210,7 +211,17 @@ class App(ctk.CTk):
     # Callbacks ainda não implementados (mover para app.py quando fizer)
     # ------------------------------------------------------------------
     def alterar_destino(self):
-        pass
+        # Abre a janela nativa do Windows para selecionar diretórios
+        pasta_selecionada = filedialog.askdirectory(
+            title="Selecione a Pasta de Destino",
+            initialdir=self.lbl_destino.cget("text") # Abre na pasta que já está escrita por padrão
+        )
+        
+        # Se o usuário escolheu uma pasta (e não cancelou a janela)
+        if pasta_selecionada:
+            # Atualiza o texto do rótulo na interface com o novo caminho corrigindo as barras para o padrão Windows
+            caminho_windows = pasta_selecionada.replace("/", "\\")
+            self.lbl_destino.configure(text=caminho_windows)
 
     def gerar_arquivo(self):
         pass
