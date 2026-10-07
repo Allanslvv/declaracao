@@ -136,7 +136,10 @@ class App(ctk.CTk):
         entry = ctk.CTkEntry(
             frame, height=38, corner_radius=8, border_width=1, border_color=COR_BORDA,
             fg_color=COR_CAMPO_LEITURA if somente_leitura else "white",
-            text_color=COR_TEXTO, placeholder_text=placeholder, font=(FONTE, 13),
+            text_color=COR_TEXTO, 
+            placeholder_text=placeholder, 
+            placeholder_text_color="#9CA3AF", # <<< LINHA ADICIONADA: Força o placeholder a aparecer em cinza
+            font=(FONTE, 13),
             **kwargs_validacao
         )
         entry.pack(fill="x", pady=(3, 0))
@@ -188,8 +191,8 @@ class App(ctk.CTk):
             c.grid_columnconfigure(i, weight=1, uniform="manual")
 
         m = self.campos_manual
-        m["numero_os"] = self._campo(c, "Número da OS", 0, 0, "Ex: 85505823/1", tipo_num="codigo")
-        m["codigo_produto"] = self._campo(c, "Código do Produto", 0, 1, "Ex: 05490000-0", tipo_num="codigo")
+        m["numero_os"] = self._campo(c, "Número da OS", 0, 0, "Ex: 85505823/1")
+        m["codigo_produto"] = self._campo(c, "Código do Produto", 0, 1, "Ex: 05490000-0")
         m["quantidade"] = self._campo(c, "Quantidade", 0, 2, "1", tipo_num="inteiro")
         m["vlr_unitario"] = self._campo(c, "Vlr. Unitário", 0, 3, "0.00", tipo_num="decimal")
 
