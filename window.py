@@ -237,7 +237,7 @@ class App(ctk.CTk):
         self.btn_gerar = ctk.CTkButton(
         botoes, text="Gerar Arquivo", width=240, height=46, corner_radius=10,
         fg_color=COR_SUCESSO, hover_color=COR_SUCESSO_HOVER,
-        font=(FONTE, 14, "bold"), command=self.gerar_arquivo,
+        font=(FONTE, 14, "bold"), command=lambda: app.gerar_arquivo(self),
         )
         self.btn_gerar.pack(side="left", padx=8)
     def _barra_status(self):
